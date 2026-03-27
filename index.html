@@ -1,9 +1,176 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>My Site</title>
-  </head>
-  <body>
-    <h1>Hello world</h1>
-  </body>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Yawnyawnpizza - Homepage</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    display: flex;
+    height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background: #020617;
+    border-right: 1px solid #1e293b;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.sidebar h2 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+#search {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid #1e293b;
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+.repo {
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #0f172a;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+    border: 1px solid #1e293b;
+}
+
+.repo:hover {
+    background: #1e293b;
+}
+
+/* Main content */
+.main {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+.card {
+    background: #020617;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #1e293b;
+}
+
+.card h1 {
+    margin-top: 0;
+}
+
+a {
+    color: #60a5fa;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2>Projects</h2>
+    <input type="text" id="search" placeholder="Search projects...">
+    <div id="repoList">Loading...</div>
+</div>
+
+<div class="main">
+    <div class="card" id="latestRepo">
+        Loading latest project...
+    </div>
+</div>
+
+<script>
+const username = "yawnyawnpizza";
+const repoListEl = document.getElementById("repoList");
+const latestRepoEl = document.getElementById("latestRepo");
+const searchInput = document.getElementById("search");
+
+let allRepos = [];
+
+async function loadRepos() {
+    try {
+        const res = await fetch(`https://api.github.com/users/${username}/repos?sort=updated`);
+        const repos = await res.json();
+
+        if (!repos.length) {
+            repoListEl.innerHTML = "No repos found.";
+            return;
+        }
+
+        allRepos = repos;
+
+        displayLatest(repos[0]);
+        displayRepos(repos);
+
+    } catch (err) {
+        repoListEl.innerHTML = "Error loading repos.";
+        latestRepoEl.innerHTML = "Failed to load data.";
+        console.error(err);
+    }
+}
+
+function displayLatest(repo) {
+    latestRepoEl.innerHTML = `
+        <h1>${repo.name}</h1>
+        <p>${repo.description || "No description provided."}</p>
+        <p><strong>Updated:</strong> ${new Date(repo.updated_at).toLocaleString()}</p>
+        <p><a href="${repo.html_url}" target="_blank">View on GitHub</a></p>
+    `;
+}
+
+function displayRepos(repos) {
+    repoListEl.innerHTML = "";
+
+    repos.forEach(repo => {
+        const div = document.createElement("div");
+        div.className = "repo";
+
+        div.innerHTML = `
+            <strong>${repo.name}</strong>
+            <br>
+            <small>${repo.description || ""}</small>
+        `;
+
+        div.onclick = () => displayLatest(repo);
+
+        repoListEl.appendChild(div);
+    });
+}
+
+// Search filtering
+searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
+
+    const filtered = allRepos.filter(repo =>
+        repo.name.toLowerCase().includes(query) ||
+        (repo.description && repo.description.toLowerCase().includes(query))
+    );
+
+    displayRepos(filtered);
+});
+
+loadRepos();
+</script>
+
+</body>
 </html>
