@@ -56,6 +56,12 @@ body {
     background: #1e293b;
 }
 
+.badge {
+    font-size: 12px;
+    color: #22c55e;
+    margin-left: 5px;
+}
+
 /* Main content */
 .main {
     flex: 1;
@@ -81,6 +87,10 @@ a {
 
 a:hover {
     text-decoration: underline;
+}
+
+.muted {
+    color: #94a3b8;
 }
 </style>
 </head>
@@ -112,17 +122,32 @@ function getPagesUrl(repoName) {
     return `https://${username}.github.io/${repoName}/`;
 }
 
+async function checkPagesExists(url) {
+    try {
+        const res = await fetch(url, { method: "HEAD", mode: "no-cors" });
+        return true; // If no error, assume it exists
+    } catch {
+        return false;
+    }
+}
+
 async function loadRepos() {
     try {
         const res = await fetch(`https://api.github.com/users/${username}/repos?sort=updated`);
         let repos = await res.json();
 
-        // ✅ Hide the GitHub Pages repo itself
+        // Hide the homepage repo itself
         repos = repos.filter(repo => repo.name !== "yawnyawnpizza.github.io");
 
         if (!repos.length) {
             repoListEl.innerHTML = "No repos found.";
             return;
+        }
+
+        // Attach Pages info
+        for (let repo of repos) {
+            repo.pagesUrl = getPagesUrl(repo.name);
+            repo.hasPages = await checkPagesExists(repo.pagesUrl);
         }
 
         allRepos = repos;
@@ -138,14 +163,16 @@ async function loadRepos() {
 }
 
 function displayLatest(repo) {
-    const pagesUrl = getPagesUrl(repo.name);
+    const pagesLink = repo.hasPages
+        ? `<a href="${repo.pagesUrl}" target="_blank">Open Website</a>`
+        : `<span class="muted">No website available</span>`;
 
     latestRepoEl.innerHTML = `
         <h1>${repo.name}</h1>
         <p>${repo.description || "No description provided."}</p>
         <p><strong>Updated:</strong> ${new Date(repo.updated_at).toLocaleString()}</p>
         <p>
-            <a href="${pagesUrl}" target="_blank">Open Website</a> • 
+            ${pagesLink} • 
             <a href="${repo.html_url}" target="_blank">View on GitHub</a>
         </p>
     `;
@@ -158,21 +185,24 @@ function displayRepos(repos) {
         const div = document.createElement("div");
         div.className = "repo";
 
-        const pagesUrl = getPagesUrl(repo.name);
-
         div.innerHTML = `
             <strong>${repo.name}</strong>
+            ${repo.hasPages ? '<span class="badge">🌐</span>' : ''}
             <br>
             <small>${repo.description || ""}</small>
         `;
 
         div.onclick = () => {
+            const pagesLink = repo.hasPages
+                ? `<a href="${repo.pagesUrl}" target="_blank">Open Website</a>`
+                : `<span class="muted">No website available</span>`;
+
             latestRepoEl.innerHTML = `
                 <h1>${repo.name}</h1>
                 <p>${repo.description || "No description provided."}</p>
                 <p><strong>Updated:</strong> ${new Date(repo.updated_at).toLocaleString()}</p>
                 <p>
-                    <a href="${pagesUrl}" target="_blank">Open Website</a> • 
+                    ${pagesLink} • 
                     <a href="${repo.html_url}" target="_blank">View on GitHub</a>
                 </p>
             `;
