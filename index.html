@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Yawnyawnpizza - Homepage</title>
+<title>Yawnyawnpizza • Projects</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
@@ -101,11 +101,16 @@ a:hover {
 
 <script>
 const username = "yawnyawnpizza";
+
 const repoListEl = document.getElementById("repoList");
 const latestRepoEl = document.getElementById("latestRepo");
 const searchInput = document.getElementById("search");
 
 let allRepos = [];
+
+function getPagesUrl(repoName) {
+    return `https://${username}.github.io/${repoName}/`;
+}
 
 async function loadRepos() {
     try {
@@ -130,11 +135,16 @@ async function loadRepos() {
 }
 
 function displayLatest(repo) {
+    const pagesUrl = getPagesUrl(repo.name);
+
     latestRepoEl.innerHTML = `
         <h1>${repo.name}</h1>
         <p>${repo.description || "No description provided."}</p>
         <p><strong>Updated:</strong> ${new Date(repo.updated_at).toLocaleString()}</p>
-        <p><a href="${repo.html_url}" target="_blank">View on GitHub</a></p>
+        <p>
+            <a href="${pagesUrl}" target="_blank">Open Website</a> • 
+            <a href="${repo.html_url}" target="_blank">View on GitHub</a>
+        </p>
     `;
 }
 
@@ -145,13 +155,25 @@ function displayRepos(repos) {
         const div = document.createElement("div");
         div.className = "repo";
 
+        const pagesUrl = getPagesUrl(repo.name);
+
         div.innerHTML = `
             <strong>${repo.name}</strong>
             <br>
             <small>${repo.description || ""}</small>
         `;
 
-        div.onclick = () => displayLatest(repo);
+        div.onclick = () => {
+            latestRepoEl.innerHTML = `
+                <h1>${repo.name}</h1>
+                <p>${repo.description || "No description provided."}</p>
+                <p><strong>Updated:</strong> ${new Date(repo.updated_at).toLocaleString()}</p>
+                <p>
+                    <a href="${pagesUrl}" target="_blank">Open Website</a> • 
+                    <a href="${repo.html_url}" target="_blank">View on GitHub</a>
+                </p>
+            `;
+        };
 
         repoListEl.appendChild(div);
     });
