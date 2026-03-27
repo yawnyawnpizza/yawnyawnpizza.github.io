@@ -124,8 +124,8 @@ function getPagesUrl(repoName) {
 
 async function checkPagesExists(url) {
     try {
-        const res = await fetch(url, { method: "HEAD", mode: "no-cors" });
-        return true; // If no error, assume it exists
+        const res = await fetch(url);
+        return res.ok;
     } catch {
         return false;
     }
@@ -144,7 +144,7 @@ async function loadRepos() {
             return;
         }
 
-        // Attach Pages info
+        // Check Pages for each repo
         for (let repo of repos) {
             repo.pagesUrl = getPagesUrl(repo.name);
             repo.hasPages = await checkPagesExists(repo.pagesUrl);
