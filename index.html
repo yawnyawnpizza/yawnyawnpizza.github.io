@@ -115,7 +115,10 @@ function getPagesUrl(repoName) {
 async function loadRepos() {
     try {
         const res = await fetch(`https://api.github.com/users/${username}/repos?sort=updated`);
-        const repos = await res.json();
+        let repos = await res.json();
+
+        // ✅ Hide the GitHub Pages repo itself
+        repos = repos.filter(repo => repo.name !== "yawnyawnpizza.github.io");
 
         if (!repos.length) {
             repoListEl.innerHTML = "No repos found.";
